@@ -1,0 +1,92 @@
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.28;
+
+import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+
+/// @dev This interface MAY be used with ERC-165 for discoverability.
+/// @dev Supporting ERC-165 is RECOMMENDED but NOT REQUIRED.
+interface IERC7970 is IERC165 {
+
+    /// @notice A short name to identify the contract implementation
+    /// @return The name of the contract
+    function name() external view returns (string memory);
+
+    /// @notice Sends a message from the caller to the specified address
+    /// @param to The address to receive the message
+    /// @param messageType The type of message
+    /// @dev Message type 0 = connection request, 1 = connection-request response, 
+    /// @dev Message type 2 = AES-GCM encrypted text, all other values discretionary
+    function sendMessage(address to, uint256 messageType, bytes calldata data) external;
+
+    /// @notice Emitted when a message is sent
+    /// @param from The address from which message was sent
+    /// @param to The address to which the message was sent
+    /// @param messageType The message type
+    event MessageSent(address indexed from, address indexed to, uint256 indexed messageType, bytes data);
+
+}
+
+/// @title Stateless Encrypted Communication Standard
+/// @notice A log-based protocol for encrypted communication between two addresses on EVM chains.
+/// @dev This contract does not store any state and emits all communication as logs.
+/// @dev All semantics are interpreted off-chain.
+/// @author S.E.
+/// @custom:security-contact https://github.com/sewing848/
+contract ReferenceSEC is IERC7970, ERC165 {
+
+    /// @notice The name of the implementation
+    string private constant NAME = "ReferenceSEC";
+
+    /// @notice A short name to identify the contract implementation
+    /// @return The name of the contract
+    function name() external pure returns (string memory) {
+        return NAME;
+    }
+
+    /// @notice Send a message of the given type to the specified recipient
+    /// @param to The recipient address
+    /// @param messageType The classifier of the message
+    /// @param data The encrypted or structured payload
+    function sendMessage(address to, uint256 messageType, bytes calldata data) external {
+        emit MessageSent(msg.sender, to, messageType, data);
+    }
+
+    /// @notice Indicates support for the IERC7970 interface via ERC-165
+    /// @param interfaceId The interface identifier, as specified in ERC-165
+    /// @return true if the contract implements the specified interface
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
+        return interfaceId == type(IERC7970).interfaceId || super.supportsInterface(interfaceId);
+    }
+
+    /// @notice Returns the interface identifier for the IERC7970 standard
+    /// @return The bytes4 identifier for IERC7970
+    function getInterfaceId() external pure returns (bytes4) {
+        return type(IERC7970).interfaceId;
+    }
+
+    /// @notice Returns true if this contract implements the IERC7970 standard
+    /// @return True if this contract supports the ERC7970 interface
+    function isIERC7970() external pure returns (bool) {
+        return true;
+    }
+
+}
+
+/*
+
+ Copyright 2025 S.E.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
